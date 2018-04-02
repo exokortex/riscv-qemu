@@ -52,6 +52,7 @@ static const struct MemmapEntry {
     [VIRT_CLINT] =    {  0x2000000,    0x10000 },
     [VIRT_PLIC] =     {  0xc000000,  0x4000000 },
     [VIRT_UART0] =    { 0x10000000,      0x100 },
+    [VIRT_UART1] =    { 0x10000100,      0x100 },
     [VIRT_VIRTIO] =   { 0x10001000,     0x1000 },
     [VIRT_DRAM] =     { 0x80000000,        0x0 },
 };
@@ -385,6 +386,10 @@ static void riscv_virt_board_init(MachineState *machine)
     serial_mm_init(system_memory, memmap[VIRT_UART0].base,
         0, SIFIVE_PLIC(s->plic)->irqs[UART0_IRQ], 399193,
         serial_hd(0), DEVICE_LITTLE_ENDIAN);
+
+    serial_mm_init(system_memory, memmap[VIRT_UART1].base,
+        0, SIFIVE_PLIC(s->plic)->irqs[UART0_IRQ], 399193,
+        serial_hd(1), DEVICE_LITTLE_ENDIAN);
 
     g_free(plic_hart_config);
 }

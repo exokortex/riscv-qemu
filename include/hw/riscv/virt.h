@@ -37,6 +37,7 @@ enum {
     VIRT_CLINT,
     VIRT_PLIC,
     VIRT_UART0,
+    VIRT_UART1,
     VIRT_VIRTIO,
     VIRT_DRAM
 };
