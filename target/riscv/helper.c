@@ -276,7 +276,11 @@ restart:
             *physical = (ppn | (vpn & ((1L << ptshift) - 1))) << PGSHIFT;
 
             /* set permissions on the TLB entry */
+<<<<<<< HEAD
             if ((pte & PTE_R) || (mode != PRV_U && (pte & PTE_X) && mxr)) {
+=======
+            if ((pte & PTE_R) || ((pte & PTE_X) && mxr)) {
+>>>>>>> bbd0d6b572ee38f0a04a335c8d71c4590a9a2dc7
                 *prot |= PAGE_READ;
             }
             if ((pte & PTE_X)) {
