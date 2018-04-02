@@ -218,39 +218,53 @@ restart:
         target_ulong pte = ldq_phys(cs->as, pte_addr);
 #endif
         target_ulong ppn = pte >> PTE_PPN_SHIFT;
+        qemu_log_mask(CPU_LOG_MMU, "MMU access (%s%s%s) %08lx L%d: idx=%ld, pte=%08lx ppn=%08lx\n",
+            access_type == MMU_DATA_LOAD ? "LOAD":"",
+            access_type == MMU_DATA_STORE ? "STORE":"",
+            access_type == MMU_INST_FETCH ? "INSTF":"",
+            (guint64)addr, i, (guint64)idx, (guint64)pte, (guint64)ppn);
 
         if (!(pte & PTE_V)) {
             /* Invalid PTE */
+            qemu_log_mask(CPU_LOG_MMU, "Invalid PTE\n");
             return TRANSLATE_FAIL;
         } else if (!(pte & (PTE_R | PTE_W | PTE_X))) {
             /* Inner PTE, continue walking */
+            qemu_log_mask(CPU_LOG_MMU, "Inner PTE, continue walking\n");
             base = ppn << PGSHIFT;
         } else if ((pte & (PTE_R | PTE_W | PTE_X)) == PTE_W) {
             /* Reserved leaf PTE flags: PTE_W */
+            qemu_log_mask(CPU_LOG_MMU, "Reserved leaf PTE flags: PTE_W\n");
             return TRANSLATE_FAIL;
         } else if ((pte & (PTE_R | PTE_W | PTE_X)) == (PTE_W | PTE_X)) {
             /* Reserved leaf PTE flags: PTE_W + PTE_X */
+            qemu_log_mask(CPU_LOG_MMU, "Reserved leaf PTE flags: PTE_W + PTE_X\n");
             return TRANSLATE_FAIL;
         } else if ((pte & PTE_U) && ((mode != PRV_U) &&
                    (!sum || access_type == MMU_INST_FETCH))) {
             /* User PTE flags when not U mode and mstatus.SUM is not set,
                or the access type is an instruction fetch */
+            qemu_log_mask(CPU_LOG_MMU, "User PTE flags when not U mode and mstatus.SUM is not s\n");
             return TRANSLATE_FAIL;
         } else if (!(pte & PTE_U) && (mode != PRV_S)) {
             /* Supervisor PTE flags when not S mode */
             return TRANSLATE_FAIL;
         } else if (ppn & ((1ULL << ptshift) - 1)) {
             /* Misasligned PPN */
+            qemu_log_mask(CPU_LOG_MMU, "Misasligned PPN\n");
             return TRANSLATE_FAIL;
         } else if (access_type == MMU_DATA_LOAD && !((pte & PTE_R) ||
                    ((pte & PTE_X) && mxr))) {
             /* Read access check failed */
+            qemu_log_mask(CPU_LOG_MMU, "Read access check failed\n");
             return TRANSLATE_FAIL;
         } else if (access_type == MMU_DATA_STORE && !(pte & PTE_W)) {
             /* Write access check failed */
+            qemu_log_mask(CPU_LOG_MMU, "Write access check failed\n");
             return TRANSLATE_FAIL;
         } else if (access_type == MMU_INST_FETCH && !(pte & PTE_X)) {
             /* Fetch access check failed */
+            qemu_log_mask(CPU_LOG_MMU, "Fetch access check failed\n");
             return TRANSLATE_FAIL;
         } else {
             /* if necessary, set accessed and dirty bits. */
