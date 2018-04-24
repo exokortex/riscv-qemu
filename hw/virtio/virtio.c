@@ -719,6 +719,8 @@ static bool virtqueue_map_desc(VirtIODevice *vdev, unsigned int *p_num_sg,
     unsigned num_sg = *p_num_sg;
     assert(num_sg <= max_num_sg);
 
+    //printf("virtqueue_map_desc pa=%8lx\n\n", pa);
+
     if (!sz) {
         virtio_error(vdev, "virtio: zero sized buffers are not allowed");
         goto out;

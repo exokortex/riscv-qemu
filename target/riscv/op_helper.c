@@ -602,6 +602,7 @@ void riscv_set_local_interrupt(RISCVCPU *cpu, target_ulong mask, int value)
 
 void riscv_set_mode(CPURISCVState *env, target_ulong newpriv)
 {
+    //printf("riscv_set_mode <<< %d >>>\n", newpriv);
     if (newpriv > PRV_M) {
         g_assert_not_reached();
     }

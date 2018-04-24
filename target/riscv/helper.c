@@ -184,10 +184,11 @@ restart:
         target_ulong pte = ldq_phys(cs->as, pte_addr);
 #endif
         target_ulong ppn = pte >> PTE_PPN_SHIFT;
-        qemu_log_mask(CPU_LOG_MMU, "MMU access (%s%s%s) %08lx L%d: idx=%ld, pte=%08lx ppn=%08lx\n",
+        qemu_log_mask(CPU_LOG_MMU, "MMU access (%s%s%s) satp=%08lx addr=%08lx L%d: idx=%ld, pte=%08lx ppn=%08lx\n",
             access_type == MMU_DATA_LOAD ? "LOAD":"",
             access_type == MMU_DATA_STORE ? "STORE":"",
             access_type == MMU_INST_FETCH ? "INSTF":"",
+                      (guint64)env->satp,
             (guint64)addr, i, (guint64)idx, (guint64)pte, (guint64)ppn);
 
         if (!(pte & PTE_V)) {

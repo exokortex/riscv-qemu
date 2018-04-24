@@ -28,7 +28,7 @@
 #include "hw/virtio/virtio-bus.h"
 #include "qemu/error-report.h"
 
-/* #define DEBUG_VIRTIO_MMIO */
+// #define DEBUG_VIRTIO_MMIO
 
 #ifdef DEBUG_VIRTIO_MMIO
 
