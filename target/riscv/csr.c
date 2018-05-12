@@ -214,7 +214,7 @@ static int read_timeh(CPURISCVState *env, int csrno, target_ulong *val)
 #define M_MODE_INTERRUPTS (MIP_MSIP | MIP_MTIP | MIP_MEIP | MIP_MCIP)
 #define S_MODE_INTERRUPTS (MIP_SSIP | MIP_STIP | MIP_SEIP | MIP_SCIP)
 
-static const target_ulong delegable_ints = S_MODE_INTERRUPTS;
+static const target_ulong delegable_ints = /*M_MODE_INTERRUPTS |*/ S_MODE_INTERRUPTS;
 static const target_ulong all_ints = M_MODE_INTERRUPTS | S_MODE_INTERRUPTS;
 static const target_ulong delegable_excps =
     (1ULL << (RISCV_EXCP_INST_ADDR_MIS)) |
@@ -509,10 +509,14 @@ static int rmw_mip(CPURISCVState *env, int csrno, target_ulong *ret_value,
     uint32_t old_mip;
 
     if (mask) {
+      printf("[QEMU] delegating interrupt to supervisor %x\n", write_mask);
         qemu_mutex_lock_iothread();
         old_mip = riscv_cpu_update_mip(cpu, mask, (new_value & mask));
         qemu_mutex_unlock_iothread();
     } else {
+      if (write_mask & 0x80) {
+        printf("[QEMU] TIMER interrupt %x\n", write_mask);
+        }
         old_mip = atomic_read(&env->mip);
     }
 

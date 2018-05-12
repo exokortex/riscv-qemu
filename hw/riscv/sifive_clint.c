@@ -43,13 +43,18 @@ static void sifive_clint_write_timecmp(RISCVCPU *cpu, uint64_t value)
 
     uint64_t rtc_r = cpu_riscv_read_rtc();
 
+    printf("timecp: %lx, rtc_r: %lx: \n", value, rtc_r);
+
     cpu->env.timecmp = value;
     if (cpu->env.timecmp <= rtc_r) {
         /* if we're setting an MTIMECMP value in the "past",
            immediately raise the timer interrupt */
+           printf("setting timer in the past. THIS SHOULD NOT HAPPEN!!!\n");
         riscv_cpu_update_mip(cpu, MIP_MTIP, -1);
         return;
     }
+
+    //cpu->env.timecmp = cpu->env.timecmp % 0x0000800000000000;
 
     /* otherwise, set up the future timer interrupt */
     riscv_cpu_update_mip(cpu, MIP_MTIP, 0);
@@ -57,6 +62,7 @@ static void sifive_clint_write_timecmp(RISCVCPU *cpu, uint64_t value)
     /* back to ns (note args switched in muldiv64) */
     next = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
         muldiv64(diff, NANOSECONDS_PER_SECOND, SIFIVE_CLINT_TIMEBASE_FREQ);
+    printf("diff: %ld, next: %ld\n", diff, next);
     timer_mod(cpu->env.timer, next);
 }
 
@@ -122,6 +128,7 @@ static uint64_t sifive_clint_read(void *opaque, hwaddr addr, unsigned size)
 static void sifive_clint_write(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
+printf("sifive_clint_write: addr: %lx, value: %lx: \n", addr, value);
     SiFiveCLINTState *clint = opaque;
 
     if (addr >= clint->sip_base &&
@@ -146,12 +153,14 @@ static void sifive_clint_write(void *opaque, hwaddr addr, uint64_t value,
             error_report("clint: invalid timecmp hartid: %zu", hartid);
         } else if ((addr & 0x7) == 0) {
             /* timecmp_lo */
+            printf("timecmp_lo write\n");
             uint64_t timecmp = env->timecmp;
             sifive_clint_write_timecmp(RISCV_CPU(cpu),
-                timecmp << 32 | (value & 0xFFFFFFFF));
+                (timecmp & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)); // AAAAAAAAAAAAAAAAAAAAAAAAAAAAaa how the fuck?????
             return;
         } else if ((addr & 0x7) == 4) {
             /* timecmp_hi */
+            printf("timecmp_hi write\n");
             uint64_t timecmp = env->timecmp;
             sifive_clint_write_timecmp(RISCV_CPU(cpu),
                 value << 32 | (timecmp & 0xFFFFFFFF));
